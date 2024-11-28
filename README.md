@@ -5,14 +5,15 @@
 
 ## Installation
 
-1. install ffmpeg
-2. get [Sber SaluteSpeech API key](https://developers.sber.ru/docs/ru/salutespeech/authentication) and insert it in server\tts.js API.key 
-3. get [Sber GIgachat API key](https://developers.sber.ru/docs/ru/gigachat/quickstart/ind-using-api) and insert it in server\llm.js API.key 
-4. install libs
+1. install [node.js](https://nodejs.org/en)
+2. install ffmpeg
+3. get [Sber SaluteSpeech API key](https://developers.sber.ru/docs/ru/salutespeech/authentication) and insert it in server\tts.js API.key 
+4. get [Sber GIgaChat API key](https://developers.sber.ru/docs/ru/gigachat/quickstart/ind-using-api) and insert it in server\llm.js API.key 
+5. install libs
 ```js
 npm i
 ```
-5. run server
+6. run server
 ```
 cd server
 node index.js
