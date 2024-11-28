@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/artemdudkin/kv30"
+    "url": "https://github.com/artemdudkin/tts-and-ai-chat"
   },
   "dependencies": {
     "express": "^4.21.1",
