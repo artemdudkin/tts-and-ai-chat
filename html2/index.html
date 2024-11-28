@@ -318,7 +318,7 @@ function fetchRecordings(playNewOutputFile) {
             && chatCurrentData.files[i].text !== response.files[i].text
         ) {
           chatCurrentData.files[i].text = response.files[i].text
-          const el = document.getElementById( 'text_'+getIdFromFN(msg.file))
+          const el = document.getElementById( 'text_'+getIdFromFN(response.files[i].file))
           el.innerText = chatCurrentData[i].text
         }
       }
