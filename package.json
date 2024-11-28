@@ -1,0 +1,16 @@
+{
+  "name": "tts-and-ai-chat",
+  "version": "0.0.1",
+  "description": "POC voice AI Chat",
+  "author": "Artem Dudkin <sheeva@list.ru>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/artemdudkin/kv30"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^11.0.3"
+  }
+}
