@@ -172,7 +172,7 @@ recordButton.addEventListener('click', record);
 clearButton.addEventListener('click', clear);
 
 fetchRecordings();
-setInterval(()=>{fetchRecordings(true)}, 10000);
+setInterval(()=>{fetchRecordings(true)}, 1000);
 
 
 function record() {
@@ -256,7 +256,9 @@ function resetRecording () {
   audioBlob = null;
 }
 
-let recordings; // current data (to compare with new data and update chat if there is new records)
+
+let chatCurrentData; // current data (to compare with new data and update chat if there is new records)
+
 
 function clear(){
   /** spinner from icons8 [from https://icons8.com/preloaders/en/circular]*/
@@ -266,13 +268,13 @@ function clear(){
   
   fetch('/clear')
   .then(() => {
-    recordings=undefined;
+    chatCurrentData=undefined;
     fetchRecordings();
     recordButtonImage.src = '/images/microphone.png';
     wait = false
   })
   .catch((err) => {
-    recordings=undefined;
+    chatCurrentData=undefined;
     fetchRecordings();
     recordButtonImage.src = '/images/microphone.png';
     wait = false
@@ -284,47 +286,86 @@ function fetchRecordings(playNewOutputFile) {
   fetch('/recordings')
   .then((response) => response.json())
   .then((response) => {
-    if (response.success && response.files && (recordings==null || (recordings!=null && recordings.length !== response.files.length))) {
-      recordings = response.files
+    if (response.success && response.files && (chatCurrentData==null || (chatCurrentData!=null && chatCurrentData.files.length !== response.files.length))) {
+      //if new message added
 
+      chatCurrentData = response
+
+      //is there new audio from AI?
       let newOutputFileId;
       if (response.files && response.files instanceof Array && response.files.length > 0) {
-        let type = recordings[recordings.length-1].file.split('.');
+        let type = response.files[response.files.length-1].file.split('.');
         type = type[type.length-2]
-        if (playNewOutputFile && type === 'o') newOutputFileId = getIdFromFN(recordings[recordings.length-1].file)
+        if (playNewOutputFile && type === 'o') newOutputFileId = getIdFromFN(response.files[response.files.length-1].file)
       }
 
-      //remove all previous recordings shown
+      //re-create chat
       messagesContainer.innerHTML = '';
       response.files.forEach(msg => messagesContainer.prepend( createMessageElement(msg)))
       if ( response.waiting_answer > 0) messagesContainer.prepend( createMessageStub())
 
+      //play last audio from AI if any
       if (newOutputFileId) playRecording({target:document.getElementById(newOutputFileId)})
+    } else {
+      //there's no new messages, but text of last message could be changed or 'typing' bubble could disappear
+
+      //update text at chat messages
+      for (let i=0; i<response.files.length; i++) {
+        if (chatCurrentData != null 
+            && chatCurrentData.files 
+            && chatCurrentData.files[i] != null
+            && chatCurrentData.files[i].file === response.files[i].file
+            && chatCurrentData.files[i].text !== response.files[i].text
+        ) {
+          chatCurrentData.files[i].text = response.files[i].text
+          const el = document.getElementById( 'text_'+getIdFromFN(msg.file))
+          el.innerText = chatCurrentData[i].text
+        }
+      }
+
+      //update "typing" bubble
+      if (chatCurrentData != null 
+          && chatCurrentData.waiting_answer !== response.waiting_answer
+      ) {
+        chatCurrentData.waiting_answer = response.waiting_answer;
+
+        let el = document.getElementById('ai-typing')
+        if (response.waiting_answer === 0) {
+          el.remove();
+        } else {
+          if (!el) messagesContainer.prepend( createMessageStub()) 
+        }
+      }
     }
   })
   .catch((err) => console.error(err));
 }
 
+
 function getIdFromFN(fn) {
   return fn.replaceAll('/', '-').replaceAll('.', '-').replaceAll('\\', '-');
 }
 
+
 function createMessageStub() {
   const msgElement = document.createElement('div');
+  msgElement.id='ai-typing'
   msgElement.classList.add("mine", "message", "last");
   /** icons [from https://tenor.com/ru/view/writing-loading-circles-gif-17914991]*/
   msgElement.innerHTML = '<img src="images/writing-loading.gif" height="24">'
   return msgElement;
 }
 
+
 function createMessageElement(msg) {
   const fn = msg.file.split('.')
+  const playButtonId = getIdFromFN(msg.file);
+  const textId = 'text_'+playButtonId
 
   const msgElement = document.createElement('div');
   msgElement.classList.add(fn[fn.length-2]=='i'?"yours":"mine", "message", "last");
-  msgElement.innerHTML = (msg.text ? msg.text : `...`)
+  msgElement.innerHTML = `<div id="${textId}">${(msg.text ? msg.text : `...`)}</div>`
 
-  //container element
   const recordingElement = document.createElement('div');
   const audio = document.createElement('audio');
   audio.src = msg.file;
@@ -333,7 +374,7 @@ function createMessageElement(msg) {
   };
   recordingElement.appendChild(audio);
   const playButton = document.createElement('button');
-  playButton.id = getIdFromFN(msg.file);
+  playButton.id = playButtonId;
   const playImage = document.createElement('img');
   playImage.src = '/images/play.png';
   playImage.classList.add('img-fluid');
@@ -346,24 +387,19 @@ function createMessageElement(msg) {
   return msgElement;
 }
 
+
 function playRecording (e) {
   let button = e.target;
   if (button.tagName === 'IMG') {
-    //get parent button
     button = button.parentElement;
   }
-  //get audio sibling
   const audio = button.previousElementSibling;
   if (audio && audio.tagName === 'AUDIO') {
     if (audio.paused) {
-      //if audio is paused, play it
       audio.play();
-      //change the image inside the button to pause
       button.firstElementChild.src = 'images/pause.png';
     } else {
-      //if audio is playing, pause it
       audio.pause();
-      //change the image inside the button to play
       button.firstElementChild.src = 'images/play.png';
     }
   }
