@@ -29,6 +29,10 @@ node index.js
 
 <img alt="example" src="https://raw.githubusercontent.com/artemdudkin/tts-and-ai-chat/ae12d705bf216deec8d3bd6f43da7d836ad1368c/docs/localhost.png" height="250"/>
 
+## Demo
+
+Look at https://try-tts.ru
+
 
 ## License
 
